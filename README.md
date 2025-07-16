@@ -1,73 +1,139 @@
-------------------------------------------
 
-1. Install and use Ollama
+# Table of contents
+1. [Install Ollama on Linux](#1-install-ollama)
+    1. [Download and install](#11-download-and-install)
+    2. [Configure the service](#12-configure-the-service)
+    3. [Commands for managing the service](#13-commands-for-managing-the-service)
+    4. [Pull a model](#14-pull-a-model)
+2. [Run and stop Ollama](#2-run-and-stop-ollama)
+    1. [Run a model](#21-run-a-model)
+    2. [Stop running](#22-stop-running)
+3. [Python virtual environment](#3-create-and-run-a-python-virtual-enviroment)
+    1. [Create a python venv](#31-create-a-python-venv)
+    2. [Activate venv](#32-activate-virtual-env)
+    3. [Create requirements.txt](#33-create-a-requirementstxt)
+    4. [Intall the requirements](#34-install-the-requirements)
+    5. [Deactivate venv](#35-deactivate-virtual-env)
+4. [Ollama checker pythng scirpt](#4-ollama-checker-python-script)
+    1. [Create a basic checker python script](#41-create-a-basic-checker-python-script)
+    2. [Run the basic script](#42-run-the-basic-script)
 
-1.1.Download and install:
-curl -fsSL https://ollama.com/install.sh | sh
+## 1. Install Ollama
+
+### 1.1. Download and install
+
+    curl -fsSL https://ollama.com/install.sh | sh
 
 Check installation:
-ollama --version
 
-1.2. Configure the service:
-Update this file: /etc/systemd/system/ollama.service with this content (adjust it):
-'''
-[Unit]
-Description=Ollama AI Service
-After=network.target
+    ollama --version
 
-[Service]
-ExecStart=/usr/local/bin/ollama serve
-Restart=on-failure
-User=caico
-Group=caico
-WorkingDirectory=/home/caico
-Environment=PATH=/usr/local/bin:/usr/bin:/bin
+### 1.2. Configure the service:
 
-[Install]
-WantedBy=multi-user.target
-'''
+Update this file: **/etc/systemd/system/ollama.service** with this content (adjust it):
 
-1.3. Commands for managing the service:
-sudo systemctl start ollama	Start it manually
-sudo systemctl stop ollama	Stop it
-sudo systemctl restart ollama	Restart it
-systemctl is-enabled ollama	Check if enabled at boot
-sudo systemctl enable ollama	(optional) Enable auto-start at boot
-sudo systemctl disable ollama	Prevent auto-start at boot
+    [Unit]
+    Description=Ollama AI Service
+    After=network.target
 
-1.4. After starting the service, pull a model:
-ollama pull llama3.1:8b
+    [Service]
+    ExecStart=/usr/local/bin/ollama serve
+    Restart=on-failure
+    User=caico
+    Group=caico
+    WorkingDirectory=/home/caico
+    Environment=PATH=/usr/local/bin:/usr/bin:/bin
 
-1.5. When starting service and pulling a model, chat with it:
-ollama run llama3.1:8b
+    [Install]
+    WantedBy=multi-user.target
 
-1.6. Stop chatting by typping:
-/bye
-Or press Ctrl-D or Ctrl-C (not recommended)
+### 1.3. Commands for managing the service:
 
+- Start it:                     sudo systemctl start ollama	
+- Stop it:                      sudo systemctl stop ollama	
+- Restart it:                   sudo systemctl restart ollama	
+- Check if enabled at boot:     systemctl is-enabled ollama
+- Enable auto-start at boot:    sudo systemctl enable ollama
+- Disable auto-start at boot:   sudo systemctl disable ollama
+
+### 1.4. Pull a model
+
+List of models: [Ollama models](https://ollama.com/library))
+As example, we are going to pull llama3.1.:8b model:
+
+    ollama pull llama3.1:8b
 
 
-2. Basic Python script for using Ollama
+## 2. Run and stop Ollama
 
-2.1. Createa a new directory and a python virtual environment on it:
-python3 -m venv venv
+### 2.1. Run a model
 
-2.2. Activate virtual env:
-source venv/bin/activate
+We assume that Ollama service is up and listening; then launch this command
 
-2.3. Install ollama for python:
-pip install ollama
+    ollama run llama3.1:8b
 
-2.4. Create a requirements.txt with this content:
-'''
-ollama>=0.1.7
-black>=24.0.0      # for code formatting
-flake8>=7.0.0      # for linting
-pytest>=8.0.0      # for testing
-'''
+We can start chatting with the model
 
-2.5. Install the requirements:
-pip install -r requirements.txt
+### 2.2. Stop running
 
-2.6. Create the ollama hello world python scrpt, run the ollama model (1.5) and run the script it:
+Type **/bye** or press **Ctrl-D**
 
+
+## 3. Create and run a Python virtual enviroment
+
+### 3.1. Create a Python venv:
+
+    python3 -m venv venv
+
+### 3.2. Activate virtual env
+
+    source venv/bin/activate
+
+### 3.3. Create a requirements.txt
+
+Create this file in proyect root directory with this content:
+
+    ollama>=0.1.7
+    black>=24.0.0      # for code formatting
+    flake8>=7.0.0      # for linting
+    pytest>=8.0.0      # for testing
+
+### 3.4. Install the requirements:
+
+    pip install -r requirements.txt
+
+### 3.5. Deactivate virtual env
+
+    deactivate
+
+
+## 4. Ollama checker python script
+
+### 4.1. Create a basic checker python script
+
+The basic script could be this one:
+
+    import ollama
+
+    client = ollama.Client()
+
+    stream = client.chat(
+        model='llama3.1:8b',
+        messages=[{'role': 'user', 'content': 'how are you doing?'}],
+        stream=True
+    )
+
+    for chunk in stream:
+        print(chunk['message']['content'], end='', flush=True)
+
+    print()
+
+### 4.2. Run the basic script
+
+Make sure that:
+- Ollama service is up and listening
+- We are in the python venv
+
+Then launch:
+
+    python3 basic-ollama-checker.py
